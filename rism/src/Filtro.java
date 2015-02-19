@@ -3,6 +3,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -23,12 +25,22 @@ public class Filtro
 	private static Matcher m = null;
 	private static Pattern p = null;
 
+	private static void err(String msg)
+	{
+		System.err.println(msg);
+	}
+
 	private static void organico(Element s)
 	{
 		String temp = s.getText();
+		Hashtable<String, Integer> coroHt, vociHt, struHt;
+		coroHt = new Hashtable<String, Integer>();
+		vociHt = new Hashtable<String, Integer>();
+		struHt = new Hashtable<String, Integer>();
 		p = Pattern.compile("([a-z]+) ([0-9]),");
 		m = p.matcher(temp);
-		String stru = null;
+		String stru = null, lastStru = null;
+		String count = null;
 		int struCount = 1;
 		if(m.find())
 		{
@@ -59,38 +71,198 @@ public class Filtro
 // i cori richiedono una gestione delicata
 
 		boolean coro = false;
+		boolean voce = false;
 
+		err("");
 		for(String e : eList)
 		{
 			e = e.trim();
+// err(e);
 			if(e.startsWith("Coro "))
 			{
-				if(!coro)
-				{
-					coro = true;
-					r += "Coro(";
-				}
+				coro = true;
 				e = e.replace("Coro ", "");
 			}
-			else if(coro)
+			if(e.matches("^[A-Z]+.*"))
 			{
-				coro = false;
-				r = r.substring(0, r.length() - 1) + "),";
+				voce = true;
 			}
 			if(e.contains("("))
 			{
 				int lp = e.indexOf("(");
 				int rp = e.indexOf(")");
-				String count = e.substring(lp + 1, rp);
-				String ex = e.substring(0, lp).trim();
-				e = count + ex;
+				count = e.substring(lp + 1, rp);
+				stru = e.substring(0, lp).trim();
+				try
+				{
+					if(coro)
+					{
+						coroHt.put(stru, Integer.parseInt(count));
+					}
+					else if(voce)
+					{
+						vociHt.put(stru, Integer.parseInt(count));
+					}
+					else
+					{
+						struHt.put(stru, Integer.parseInt(count));
+					}
+				}
+				catch(NumberFormatException ee)
+				{
+					err("Quantificazione non valida: " + e);
+				}
+				e = count + stru;
+				lastStru = stru;
 			}
+			else if(e.matches(".* [0-9].*"))
+			{
+// err(".* [0-9]+ => " + e);
+				String[] temp2 = e.split(" ");
+				stru = temp2[0];
+				count = temp2[1];
+				try
+				{
+					if(coro)
+					{
+						coroHt.put(stru, Integer.parseInt(count));
+					}
+					else if(voce)
+					{
+						vociHt.put(stru, Integer.parseInt(count));
+					}
+					else
+					{
+						struHt.put(stru, Integer.parseInt(count));
+					}
+				}
+				catch(NumberFormatException ee)
+				{
+					System.err.println("Quantificazione non valida: " + e);
+				}
+				e = count + stru;
+				lastStru = stru;
+			}
+			else if(e.matches("[0-9]+"))
+			{
+// err("[0-9]+ => " + e);
+				if(lastStru != null && struHt.containsKey(lastStru))
+				{
+					int cc = struHt.get(lastStru).intValue();
+					if(coro)
+					{
+						coroHt.put(lastStru, +cc);
+					}
+					else if(voce)
+					{
+						vociHt.put(lastStru, +cc);
+					}
+					else
+					{
+						struHt.put(lastStru, ++cc);
+					}
+				}
+				else
+				{
+					err("Non so che fare con questo token: [" + e + "]");
+				}
+			}
+			else
+			{
+				stru = e;
+				if(coro)
+				{
+					if(coroHt.containsKey(stru))
+					{
+						int cc = coroHt.get(stru).intValue();
+						coroHt.put(stru, +cc);
+					}
+					else
+					{
+						coroHt.put(stru, 1);
+					}
+				}
+				else if(voce)
+				{
+					if(vociHt.containsKey(stru))
+					{
+						int cc = vociHt.get(stru).intValue();
+						vociHt.put(stru, +cc);
+					}
+					else
+					{
+						vociHt.put(stru, 1);
+					}
+				}
+				else
+				{
+					if(struHt.containsKey(stru))
+					{
+						int cc = struHt.get(stru).intValue();
+						struHt.put(stru, +cc);
+					}
+					else
+					{
+						struHt.put(stru, 1);
+					}
+				}
+			}
+			coro = false;
+			voce = false;
 			r += e + ",";
 		}
 // r = r.replaceAll("([a-zA-Z]+) [0-9],\\1 ([0-9])", "\1 (\2)");
 // r = r.replaceAll(",tamb", ",\\1 uro");
 
-		s.setText(r.substring(0, r.length() - 1));
+		Enumeration<String> keys;
+		err("\nStrumenti");
+		r = "";
+		String key;
+		Integer value;
+		keys = struHt.keys();
+		while(keys.hasMoreElements())
+		{
+			key = keys.nextElement();
+			value = struHt.get(key);
+			err(key + " => " + struHt.get(key));
+			if(value.intValue() > 1)
+			{
+				r += value + key + ",";
+			}
+			else
+			{
+				r += key + ",";
+			}
+		}
+		err("Coro");
+		keys = coroHt.keys();
+		if(keys.hasMoreElements())
+		{
+			r += "Coro(";
+			while(keys.hasMoreElements())
+			{
+				key = keys.nextElement();
+				value = coroHt.get(key);
+				err(key + " => " + coroHt.get(key));
+				r += value + key + ",";
+			}
+			r = r.substring(0, r.length() - 1) + "),";
+		}
+		err("Voci");
+		keys = vociHt.keys();
+		while(keys.hasMoreElements())
+		{
+			key = keys.nextElement();
+			value = vociHt.get(key);
+			err(key + " => " + vociHt.get(key));
+			r += value + key + ",";
+		}
+		err(r);
+		if(r.length() > 0)
+		{
+			s.setText(r.substring(0, r.length() - 1));
+			err(s.getText());
+		}
 	}
 
 	private static void nonSort(Element s)
