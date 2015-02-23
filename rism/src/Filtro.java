@@ -3,9 +3,11 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.PriorityQueue;
+import java.util.Queue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -34,9 +36,13 @@ public class Filtro
 	{
 		String temp = s.getText();
 		Hashtable<String, Integer> coroHt, vociHt, struHt;
+		Queue<String> coroQu, vociQu, struQu;
 		coroHt = new Hashtable<String, Integer>();
 		vociHt = new Hashtable<String, Integer>();
 		struHt = new Hashtable<String, Integer>();
+		coroQu = new LinkedList<String>();
+		vociQu = new LinkedList<String>();
+		struQu = new LinkedList<String>();
 		p = Pattern.compile("([a-z]+) ([0-9]),");
 		m = p.matcher(temp);
 		String stru = null, lastStru = null;
@@ -77,7 +83,7 @@ public class Filtro
 		for(String e : eList)
 		{
 			e = e.trim();
-// err(e);
+			err(e);
 			if(e.startsWith("Coro "))
 			{
 				coro = true;
@@ -98,14 +104,26 @@ public class Filtro
 					if(coro)
 					{
 						coroHt.put(stru, Integer.parseInt(count));
+						if(! coroQu.contains(stru))
+						{
+							coroQu.add(stru);
+						}
 					}
 					else if(voce)
 					{
 						vociHt.put(stru, Integer.parseInt(count));
+						if(! vociQu.contains(stru))
+						{
+							vociQu.add(stru);
+						}
 					}
 					else
 					{
 						struHt.put(stru, Integer.parseInt(count));
+						if(! struQu.contains(stru))
+						{
+							struQu.add(stru);
+						}
 					}
 				}
 				catch(NumberFormatException ee)
@@ -126,14 +144,26 @@ public class Filtro
 					if(coro)
 					{
 						coroHt.put(stru, Integer.parseInt(count));
+						if(! coroQu.contains(stru))
+						{
+							coroQu.add(stru);
+						}
 					}
 					else if(voce)
 					{
 						vociHt.put(stru, Integer.parseInt(count));
+						if(! vociQu.contains(stru))
+						{
+							vociQu.add(stru);
+						}
 					}
 					else
 					{
 						struHt.put(stru, Integer.parseInt(count));
+						if(! struQu.contains(stru))
+						{
+							struQu.add(stru);
+						}
 					}
 				}
 				catch(NumberFormatException ee)
@@ -152,14 +182,26 @@ public class Filtro
 					if(coro)
 					{
 						coroHt.put(lastStru, +cc);
+						if(! coroQu.contains(lastStru))
+						{
+							coroQu.add(lastStru);
+						}
 					}
 					else if(voce)
 					{
 						vociHt.put(lastStru, +cc);
+						if(! vociQu.contains(lastStru))
+						{
+							vociQu.add(lastStru);
+						}
 					}
 					else
 					{
 						struHt.put(lastStru, ++cc);
+						if(! struQu.contains(lastStru))
+						{
+							struQu.add(lastStru);
+						}
 					}
 				}
 				else
@@ -181,6 +223,10 @@ public class Filtro
 					{
 						coroHt.put(stru, 1);
 					}
+					if(! coroQu.contains(stru))
+					{
+						coroQu.add(stru);
+					}
 				}
 				else if(voce)
 				{
@@ -192,6 +238,10 @@ public class Filtro
 					else
 					{
 						vociHt.put(stru, 1);
+					}
+					if(! vociQu.contains(stru))
+					{
+						vociQu.add(stru);
 					}
 				}
 				else
@@ -205,6 +255,10 @@ public class Filtro
 					{
 						struHt.put(stru, 1);
 					}
+					if(! struQu.contains(stru))
+					{
+						struQu.add(stru);
+					}
 				}
 			}
 			coro = false;
@@ -214,17 +268,15 @@ public class Filtro
 // r = r.replaceAll("([a-zA-Z]+) [0-9],\\1 ([0-9])", "\1 (\2)");
 // r = r.replaceAll(",tamb", ",\\1 uro");
 
-		Enumeration<String> keys;
-		err("\nStrumenti");
 		r = "";
 		String key;
 		Integer value;
-		keys = struHt.keys();
-		while(keys.hasMoreElements())
+		err("\nVoci");
+		while(vociQu.peek() != null)
 		{
-			key = keys.nextElement();
-			value = struHt.get(key);
-			err(key + " => " + struHt.get(key));
+			key = vociQu.poll();
+			value = vociHt.get(key);
+			err(key + " => " + vociHt.get(key));
 			if(value.intValue() > 1)
 			{
 				r += value + key + ",";
@@ -235,27 +287,39 @@ public class Filtro
 			}
 		}
 		err("Coro");
-		keys = coroHt.keys();
-		if(keys.hasMoreElements())
+		if(coroQu.peek() != null)
 		{
 			r += "Coro(";
-			while(keys.hasMoreElements())
+			while(coroQu.peek() != null)
 			{
-				key = keys.nextElement();
+				key = coroQu.poll();
 				value = coroHt.get(key);
 				err(key + " => " + coroHt.get(key));
-				r += value + key + ",";
+				if(value.intValue() > 1)
+				{
+					r += value + key + ",";
+				}
+				else
+				{
+					r += key + ",";
+				}
 			}
 			r = r.substring(0, r.length() - 1) + "),";
 		}
-		err("Voci");
-		keys = vociHt.keys();
-		while(keys.hasMoreElements())
+		err("Strumenti");
+		while(struQu.peek() != null)
 		{
-			key = keys.nextElement();
-			value = vociHt.get(key);
-			err(key + " => " + vociHt.get(key));
-			r += value + key + ",";
+			key = struQu.poll();
+			value = struHt.get(key);
+			err(key + " => " + struHt.get(key));
+			if(value.intValue() > 1)
+			{
+				r += value + key + ",";
+			}
+			else
+			{
+				r += key + ",";
+			}
 		}
 		err(r);
 		if(r.length() > 0)
@@ -370,8 +434,7 @@ public class Filtro
 		Element root = jdomDocument.getRootElement();
 		Namespace zs = root.getNamespace("zs");
 
-		for(Element zsRecord : root.getChild("records", zs).getChildren("record",
-				zs))
+		for(Element zsRecord : root.getChild("records", zs).getChildren("record", zs))
 		{
 			Element zsRecordData = zsRecord.getChild("recordData", zs);
 			Element record = zsRecordData.getChild("record", null);
@@ -384,8 +447,7 @@ public class Filtro
 		nss.add(zs);
 // nss.add(null);
 // nss.add(boh);
-		XPathExpression<Element> expr = xFactory.compile("//record",
-				Filters.element(), null, nss);
+		XPathExpression<Element> expr = xFactory.compile("//record", Filters.element(), null, nss);
 		List<Element> links = expr.evaluate(jdomDocument);
 		int count = 0;
 		for(Element linkElement : links)
