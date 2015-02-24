@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -104,7 +103,7 @@ public class Filtro
 					if(coro)
 					{
 						coroHt.put(stru, Integer.parseInt(count));
-						if(! coroQu.contains(stru))
+						if(!coroQu.contains(stru))
 						{
 							coroQu.add(stru);
 						}
@@ -112,7 +111,7 @@ public class Filtro
 					else if(voce)
 					{
 						vociHt.put(stru, Integer.parseInt(count));
-						if(! vociQu.contains(stru))
+						if(!vociQu.contains(stru))
 						{
 							vociQu.add(stru);
 						}
@@ -120,7 +119,7 @@ public class Filtro
 					else
 					{
 						struHt.put(stru, Integer.parseInt(count));
-						if(! struQu.contains(stru))
+						if(!struQu.contains(stru))
 						{
 							struQu.add(stru);
 						}
@@ -144,7 +143,7 @@ public class Filtro
 					if(coro)
 					{
 						coroHt.put(stru, Integer.parseInt(count));
-						if(! coroQu.contains(stru))
+						if(!coroQu.contains(stru))
 						{
 							coroQu.add(stru);
 						}
@@ -152,7 +151,7 @@ public class Filtro
 					else if(voce)
 					{
 						vociHt.put(stru, Integer.parseInt(count));
-						if(! vociQu.contains(stru))
+						if(!vociQu.contains(stru))
 						{
 							vociQu.add(stru);
 						}
@@ -160,7 +159,7 @@ public class Filtro
 					else
 					{
 						struHt.put(stru, Integer.parseInt(count));
-						if(! struQu.contains(stru))
+						if(!struQu.contains(stru))
 						{
 							struQu.add(stru);
 						}
@@ -182,7 +181,7 @@ public class Filtro
 					if(coro)
 					{
 						coroHt.put(lastStru, +cc);
-						if(! coroQu.contains(lastStru))
+						if(!coroQu.contains(lastStru))
 						{
 							coroQu.add(lastStru);
 						}
@@ -190,7 +189,7 @@ public class Filtro
 					else if(voce)
 					{
 						vociHt.put(lastStru, +cc);
-						if(! vociQu.contains(lastStru))
+						if(!vociQu.contains(lastStru))
 						{
 							vociQu.add(lastStru);
 						}
@@ -198,7 +197,7 @@ public class Filtro
 					else
 					{
 						struHt.put(lastStru, ++cc);
-						if(! struQu.contains(lastStru))
+						if(!struQu.contains(lastStru))
 						{
 							struQu.add(lastStru);
 						}
@@ -223,7 +222,7 @@ public class Filtro
 					{
 						coroHt.put(stru, 1);
 					}
-					if(! coroQu.contains(stru))
+					if(!coroQu.contains(stru))
 					{
 						coroQu.add(stru);
 					}
@@ -239,7 +238,7 @@ public class Filtro
 					{
 						vociHt.put(stru, 1);
 					}
-					if(! vociQu.contains(stru))
+					if(!vociQu.contains(stru))
 					{
 						vociQu.add(stru);
 					}
@@ -255,7 +254,7 @@ public class Filtro
 					{
 						struHt.put(stru, 1);
 					}
-					if(! struQu.contains(stru))
+					if(!struQu.contains(stru))
 					{
 						struQu.add(stru);
 					}
@@ -329,6 +328,50 @@ public class Filtro
 		}
 	}
 
+	private static String date(Element s)
+	{
+		String r = s.getText();
+		String aDate, bDate, rDate = null;
+
+/*
+ * Consideriamo solo campi contenenti parentesi. In caso contrario tutto resta
+ * com'è. Ovviamente la prima cosa da fare è trovare la posizione delle
+ * parentesi aperta e chiusa.
+ */
+
+		if(r.contains("("))
+		{
+			int lp = r.indexOf("(");
+			int rp = r.indexOf(")");
+
+// La prima parte della data esclude lo spazio prima della parentesi aperta.
+
+			aDate = r.substring(0, lp - 1);
+			bDate = r.substring(lp + 1, rp);
+			err("\naDate = [" + aDate + "], bDate = [" + bDate + "]");
+
+// Se le due date sono uguali, si imposta questo valore.
+
+			if(aDate.equals(bDate))
+			{
+				rDate = new String(aDate);
+			}
+
+// Se sono diverse e bDate contiene (c,?,.), il campo diventa bDate, ma
+// escludendo l'eventuale "?" iniziale.
+
+			else if(bDate.startsWith("?"))
+			{
+				rDate = new String(bDate.substring(1));
+			}
+			else
+			{
+				rDate = new String(bDate);
+			}
+		}
+		return rDate;
+	}
+
 	private static void nonSort(Element s)
 	{
 		String r = s.getText();
@@ -375,7 +418,8 @@ public class Filtro
 	{
 		String tag = d.getAttributeValue("tag");
 		String field = null;
-		for(Element s : d.getChildren())
+		Element d2 = d.clone();
+		for(Element s : d2.getChildren())
 		{
 			System.err.print("$" + s.getAttributeValue("code") + s.getText());
 			field = tag + "$" + s.getAttributeValue("code");
@@ -399,20 +443,31 @@ public class Filtro
 					s.setText(s.getText().replace("|", ""));
 					break;
 
-				case "240$r":
-					s.setText(s.getText().replace("|", ""));
+				case "240$a":
+					nonSort(s);
 					break;
 
 				case "240$m":
 					organico(s);
 					break;
 
-				case "594$a":
-					organico(s);
+				case "240$r":
+					s.setText(s.getText().replace("|", ""));
 					break;
 
-				case "240$a":
-					nonSort(s);
+/*
+ * Per gestire meglio le datazioni con strumenti MARC, il 260$c originale viene
+ * conservato, e viene creato un 260$x fittizio con i valori prodotti dal metodo
+ * date()
+ */
+				case "260$c":
+					Element s2 = new Element("subfield", d.getNamespace()).setAttribute("code", "x");
+					s2.addContent(date(s));
+					d.addContent(s2);
+					break;
+
+				case "594$a":
+					organico(s);
 					break;
 
 				default:
