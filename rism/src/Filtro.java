@@ -7,8 +7,6 @@ import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -23,9 +21,6 @@ import org.jdom2.xpath.XPathFactory;
 public class Filtro
 {
 	private static String xmlSource = "input/opac2.xml";
-	private static Matcher m = null;
-	private static Pattern p = null;
-
 	private static void err(String msg)
 	{
 		System.err.println(msg);
@@ -34,41 +29,16 @@ public class Filtro
 	private static void organico(Element s)
 	{
 		String temp = s.getText();
-		Hashtable<String, Integer> coroHt, vociHt, struHt;
-		Queue<String> coroQu, vociQu, struQu;
-		coroHt = new Hashtable<String, Integer>();
-		vociHt = new Hashtable<String, Integer>();
-		struHt = new Hashtable<String, Integer>();
-		coroQu = new LinkedList<String>();
-		vociQu = new LinkedList<String>();
-		struQu = new LinkedList<String>();
-		p = Pattern.compile("([a-z]+) ([0-9]),");
-		m = p.matcher(temp);
-		String stru = null, lastStru = null;
+		Hashtable<String, Integer> ch, vh, sh;
+		Queue<String> cq, vq, sq;
+		ch = new Hashtable<String, Integer>();
+		vh = new Hashtable<String, Integer>();
+		sh = new Hashtable<String, Integer>();
+		cq = new LinkedList<String>();
+		vq = new LinkedList<String>();
+		sq = new LinkedList<String>();
+		String item = null, lastStru = null;
 		String count = null;
-		int struCount = 1;
-		if(m.find())
-		{
-			stru = m.group(1);
-			p = Pattern.compile(stru);
-			m = p.matcher(temp);
-			while(m.find())
-			{
-				struCount++;
-			}
-			temp.replaceAll(stru + " [0-9],", struCount + stru);
-		}
-
-// intervento preliminare, [stru 1, 2, 3,..., n] => [stru (n)]"
-
-// temp = temp.replaceAll("([a-z]+)", "\\1 ");
-// temp = temp.replaceAll("([0-9], )+([0-9], )", "(\\2),");
-
-// altro intervento preliminare, [stru 1, stru 2,..., stru n] => [stru n]"
-
-// temp = temp.replaceAll("([a-zA-Z]+) [0-9], vl ([0-9])", "zzzz\\1 (\\2)");
-
-// si divide la stringa alle virgole
 
 		String[] eList = temp.split(",");
 		String r = new String();
@@ -97,110 +67,83 @@ public class Filtro
 				int lp = e.indexOf("(");
 				int rp = e.indexOf(")");
 				count = e.substring(lp + 1, rp);
-				stru = e.substring(0, lp).trim();
+				item = e.substring(0, lp).trim();
 				try
 				{
 					if(coro)
 					{
-						coroHt.put(stru, Integer.parseInt(count));
-						if(!coroQu.contains(stru))
-						{
-							coroQu.add(stru);
-						}
+						ch.put(item, Integer.parseInt(count));
+						cq.add(item);
 					}
 					else if(voce)
 					{
-						vociHt.put(stru, Integer.parseInt(count));
-						if(!vociQu.contains(stru))
-						{
-							vociQu.add(stru);
-						}
+						vh.put(item, Integer.parseInt(count));
+						vq.add(item);
 					}
 					else
 					{
-						struHt.put(stru, Integer.parseInt(count));
-						if(!struQu.contains(stru))
-						{
-							struQu.add(stru);
-						}
+						sh.put(item, Integer.parseInt(count));
+						sq.add(item);
 					}
 				}
 				catch(NumberFormatException ee)
 				{
 					err("Quantificazione non valida: " + e);
 				}
-				e = count + stru;
-				lastStru = stru;
+				e = count + item;
+				lastStru = item;
 			}
 			else if(e.matches(".* [0-9].*"))
 			{
 // err(".* [0-9]+ => " + e);
 				String[] temp2 = e.split(" ");
-				stru = temp2[0];
+				item = temp2[0];
 				count = temp2[1];
 				try
 				{
 					if(coro)
 					{
-						coroHt.put(stru, Integer.parseInt(count));
-						if(!coroQu.contains(stru))
-						{
-							coroQu.add(stru);
-						}
+						ch.put(item, Integer.parseInt(count));
+						cq.add(item);
 					}
 					else if(voce)
 					{
-						vociHt.put(stru, Integer.parseInt(count));
-						if(!vociQu.contains(stru))
-						{
-							vociQu.add(stru);
-						}
+						vh.put(item, Integer.parseInt(count));
+						vq.add(item);
 					}
 					else
 					{
-						struHt.put(stru, Integer.parseInt(count));
-						if(!struQu.contains(stru))
-						{
-							struQu.add(stru);
-						}
+						sh.put(item, Integer.parseInt(count));
+						sq.add(item);
 					}
 				}
 				catch(NumberFormatException ee)
 				{
 					System.err.println("Quantificazione non valida: " + e);
 				}
-				e = count + stru;
-				lastStru = stru;
+				e = count + item;
+				lastStru = item;
 			}
 			else if(e.matches("[0-9]+"))
 			{
 // err("[0-9]+ => " + e);
-				if(lastStru != null && struHt.containsKey(lastStru))
+				if(lastStru != null && sh.containsKey(lastStru))
 				{
-					int cc = struHt.get(lastStru).intValue();
+					int cc = sh.get(lastStru).intValue();
 					if(coro)
 					{
-						coroHt.put(lastStru, +cc);
-						if(!coroQu.contains(lastStru))
-						{
-							coroQu.add(lastStru);
-						}
+						ch.put(lastStru, +cc);
+						cq.add(lastStru);
 					}
 					else if(voce)
 					{
-						vociHt.put(lastStru, +cc);
-						if(!vociQu.contains(lastStru))
-						{
-							vociQu.add(lastStru);
-						}
+						vh.put(lastStru, +cc);
+						vq.add(lastStru);
 					}
 					else
 					{
-						struHt.put(lastStru, ++cc);
-						if(!struQu.contains(lastStru))
-						{
-							struQu.add(lastStru);
-						}
+						sh.put(lastStru, ++cc);
+						sq.add(lastStru);
 					}
 				}
 				else
@@ -210,53 +153,44 @@ public class Filtro
 			}
 			else
 			{
-				stru = e;
+				item = e;
 				if(coro)
 				{
-					if(coroHt.containsKey(stru))
+					if(ch.containsKey(item))
 					{
-						int cc = coroHt.get(stru).intValue();
-						coroHt.put(stru, +cc);
+						int cc = ch.get(item).intValue();
+						ch.put(item, +cc);
 					}
 					else
 					{
-						coroHt.put(stru, 1);
-					}
-					if(!coroQu.contains(stru))
-					{
-						coroQu.add(stru);
+						ch.put(item, 1);
+						cq.add(item);
 					}
 				}
 				else if(voce)
 				{
-					if(vociHt.containsKey(stru))
+					if(vh.containsKey(item))
 					{
-						int cc = vociHt.get(stru).intValue();
-						vociHt.put(stru, +cc);
+						int cc = vh.get(item).intValue();
+						vh.put(item, +cc);
 					}
 					else
 					{
-						vociHt.put(stru, 1);
-					}
-					if(!vociQu.contains(stru))
-					{
-						vociQu.add(stru);
+						vh.put(item, 1);
+						vq.add(item);
 					}
 				}
 				else
 				{
-					if(struHt.containsKey(stru))
+					if(sh.containsKey(item))
 					{
-						int cc = struHt.get(stru).intValue();
-						struHt.put(stru, +cc);
+						int cc = sh.get(item).intValue();
+						sh.put(item, +cc);
 					}
 					else
 					{
-						struHt.put(stru, 1);
-					}
-					if(!struQu.contains(stru))
-					{
-						struQu.add(stru);
+						sh.put(item, 1);
+						sq.add(item);
 					}
 				}
 			}
@@ -264,39 +198,40 @@ public class Filtro
 			voce = false;
 			r += e + ",";
 		}
-// r = r.replaceAll("([a-zA-Z]+) [0-9],\\1 ([0-9])", "\1 (\2)");
-// r = r.replaceAll(",tamb", ",\\1 uro");
 
 		r = "";
 		String key;
-		Integer value;
+		Integer val;
 		err("\nVoci");
-		while(vociQu.peek() != null)
+		int nVoci = 0;
+		while(vq.peek() != null)
 		{
-			key = vociQu.poll();
-			value = vociHt.get(key);
-			err(key + " => " + vociHt.get(key));
-			if(value.intValue() > 1)
+			key = vq.poll();
+			val = vh.get(key);
+			err(key + " => " + vh.get(key));
+			if(val.intValue() > 1)
 			{
-				r += value + key + ",";
+				r += val + key + ",";
 			}
 			else
 			{
 				r += key + ",";
 			}
+			nVoci += val.intValue();
 		}
+
 		err("Coro");
-		if(coroQu.peek() != null)
+		if(cq.peek() != null)
 		{
 			r += "Coro(";
-			while(coroQu.peek() != null)
+			while(cq.peek() != null)
 			{
-				key = coroQu.poll();
-				value = coroHt.get(key);
-				err(key + " => " + coroHt.get(key));
-				if(value.intValue() > 1)
+				key = cq.poll();
+				val = ch.get(key);
+				err(key + " => " + ch.get(key));
+				if(val.intValue() > 1)
 				{
-					r += value + key + ",";
+					r += val + key + ",";
 				}
 				else
 				{
@@ -305,26 +240,36 @@ public class Filtro
 			}
 			r = r.substring(0, r.length() - 1) + "),";
 		}
+
 		err("Strumenti");
-		while(struQu.peek() != null)
+		int nStru = 0;
+		while(sq.peek() != null)
 		{
-			key = struQu.poll();
-			value = struHt.get(key);
-			err(key + " => " + struHt.get(key));
-			if(value.intValue() > 1)
+			key = sq.poll();
+			val = sh.get(key);
+			err(key + " => " + sh.get(key));
+			if(val.intValue() > 1)
 			{
-				r += value + key + ",";
+				r += val + key + ",";
 			}
 			else
 			{
 				r += key + ",";
 			}
+			nStru += val.intValue();
 		}
+
 		err(r);
 		if(r.length() > 0)
 		{
 			s.setText(r.substring(0, r.length() - 1));
 			err(s.getText());
+		}
+		if(nVoci * nStru > 0)
+		{
+		}
+		else if(nVoci > 0)
+		{
 		}
 	}
 
@@ -403,56 +348,63 @@ public class Filtro
 	{
 		String tag = null;
 		String ind = null;
-		for(Element d : r.getChildren("datafield", null))
+		for(Element df : r.getChildren("datafield", null))
 		{
-			tag = d.getAttributeValue("tag");
+			tag = df.getAttributeValue("tag");
 			tag = new DecimalFormat("000").format(Integer.parseInt(tag));
-			ind = d.getAttributeValue("ind1");
-			ind += d.getAttributeValue("ind2");
-			System.err.print(tag + ind);
-			subFields(d);
+			ind = df.getAttributeValue("ind1");
+			ind += df.getAttributeValue("ind2");
+			err(tag + ind);
+			subFields(df);
 		}
 	}
 
-	private static void subFields(Element d)
+	private static void subFields(Element df)
 	{
-		String tag = d.getAttributeValue("tag");
-		String field = null;
-		Element d2 = d.clone();
-		for(Element s : d2.getChildren())
+		String tag = df.getAttributeValue("tag");
+		String code = null;
+		String sf240m = null;
+		String sf594a = null;
+		Element df2 = df.clone();
+		for(Element sf : df2.getChildren())
 		{
-			System.err.print("$" + s.getAttributeValue("code") + s.getText());
-			field = tag + "$" + s.getAttributeValue("code");
-			switch(field)
+			System.err.print("$" + sf.getAttributeValue("code") + sf.getText());
+			code = tag + "$" + sf.getAttributeValue("code");
+			switch(code)
 			{
 				case "100$a":
-					if(!s.getText().contains(","))
+					if(!sf.getText().contains(","))
 					{
-						d.setAttribute("ind1", "0");
+						df.setAttribute("ind1", "0");
 					}
 					break;
 
 				case "700$a":
-					if(!s.getText().contains(","))
+					if(!sf.getText().contains(","))
 					{
-						d.setAttribute("ind1", "0");
+						df.setAttribute("ind1", "0");
 					}
 					break;
 
 				case "031$r":
-					s.setText(s.getText().replace("|", ""));
+					sf.setText(sf.getText().replace("|", ""));
 					break;
 
 				case "240$a":
-					nonSort(s);
+					nonSort(sf);
 					break;
 
+/*
+ * L'organico sintetico, che viene sempre per primo (si spera), si mette via per
+ * essere poi utilizzato insieme a quello analitico
+ */
+
 				case "240$m":
-					organico(s);
+					sf240m = sf.getText();
 					break;
 
 				case "240$r":
-					s.setText(s.getText().replace("|", ""));
+					sf.setText(sf.getText().replace("|", ""));
 					break;
 
 /*
@@ -461,13 +413,18 @@ public class Filtro
  * date()
  */
 				case "260$c":
-					Element s2 = new Element("subfield", d.getNamespace()).setAttribute("code", "x");
-					s2.addContent(date(s));
-					d.addContent(s2);
+					Element s2 = new Element("subfield", df.getNamespace()).setAttribute("code", "x");
+					s2.addContent(date(sf));
+					df.addContent(s2);
 					break;
 
 				case "594$a":
-					organico(s);
+					sf594a = sf.getText();
+					organico(sf);
+					if(sf240m.equals(sf594a))
+					{
+
+					}
 					break;
 
 				default:
