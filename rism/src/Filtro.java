@@ -4,6 +4,7 @@ import java.io.PrintWriter;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -21,6 +22,7 @@ import org.jdom2.xpath.XPathFactory;
 public class Filtro
 {
 	private static String xmlSource = "input/opac2.xml";
+
 	private static void err(String msg)
 	{
 		System.err.println(msg);
@@ -273,7 +275,51 @@ public class Filtro
 		}
 	}
 
-	private static String date(Element s)
+	private static String dateX(Element s)
+	{
+		String r = s.getText();
+		String aDate, bDate, rDate = null;
+
+/*
+ * Consideriamo solo campi contenenti parentesi. In caso contrario tutto resta
+ * com'è. Ovviamente la prima cosa da fare è trovare la posizione delle
+ * parentesi aperta e chiusa.
+ */
+
+		if(r.contains("("))
+		{
+			int lp = r.indexOf("(");
+			int rp = r.indexOf(")");
+
+// La prima parte della data esclude lo spazio prima della parentesi aperta.
+
+			aDate = r.substring(0, lp - 1);
+			bDate = r.substring(lp + 1, rp);
+			err("\naDate = [" + aDate + "], bDate = [" + bDate + "]");
+
+// Se le due date sono uguali, si imposta questo valore.
+
+			if(aDate.equals(bDate))
+			{
+				rDate = new String(aDate);
+			}
+
+// Se sono diverse e bDate contiene (c,?,.), il campo diventa bDate, ma
+// escludendo l'eventuale "?" iniziale.
+
+			else if(bDate.startsWith("?"))
+			{
+				rDate = new String(bDate.substring(1));
+			}
+			else
+			{
+				rDate = new String(bDate);
+			}
+		}
+		return rDate;
+	}
+
+	private static String dateY(Element s)
 	{
 		String r = s.getText();
 		String aDate, bDate, rDate = null;
@@ -363,31 +409,41 @@ public class Filtro
 	{
 		String tag = df.getAttributeValue("tag");
 		String code = null;
-		String sf240m = null;
+		String sf240m = "";
 		String sf594a = null;
+
+/*
+ * Serve un clone del df su cui iterare e il cui sotto albero non sarà
+ * modificato, anche se i singoli valori di elementi e attributi potrebbero
+ * essere modificati senza problemi. Il problema nasce se si aggiunge o toglie
+ * un elemento, perché questo altera la lista di figli su cui si sta iterando
+ */
 		Element df2 = df.clone();
-		for(Element sf : df2.getChildren())
+		Element sf;
+		Iterator<Element> dfcIter = df.getChildren().iterator();
+		for(Element sf2 : df2.getChildren())
 		{
-			System.err.print("$" + sf.getAttributeValue("code") + sf.getText());
-			code = tag + "$" + sf.getAttributeValue("code");
+			sf = dfcIter.next();
+			System.err.print("$" + sf2.getAttributeValue("code") + sf2.getText());
+			code = tag + "$" + sf2.getAttributeValue("code");
 			switch(code)
 			{
 				case "100$a":
-					if(!sf.getText().contains(","))
+					if(!sf2.getText().contains(","))
 					{
 						df.setAttribute("ind1", "0");
 					}
 					break;
 
 				case "700$a":
-					if(!sf.getText().contains(","))
+					if(!sf2.getText().contains(","))
 					{
 						df.setAttribute("ind1", "0");
 					}
 					break;
 
 				case "031$r":
-					sf.setText(sf.getText().replace("|", ""));
+					sf.setText(sf2.getText().replace("|", ""));
 					break;
 
 				case "240$a":
@@ -400,11 +456,11 @@ public class Filtro
  */
 
 				case "240$m":
-					sf240m = sf.getText();
+					sf240m = sf2.getText();
 					break;
 
 				case "240$r":
-					sf.setText(sf.getText().replace("|", ""));
+					sf.setText(sf2.getText().replace("|", ""));
 					break;
 
 /*
@@ -414,17 +470,32 @@ public class Filtro
  */
 				case "260$c":
 					Element s2 = new Element("subfield", df.getNamespace()).setAttribute("code", "x");
-					s2.addContent(date(sf));
+					s2.addContent(dateX(sf2));
+					df.addContent(s2);
+					s2 = new Element("subfield", df.getNamespace()).setAttribute("code", "y");
+					s2.addContent(dateY(sf2));
 					df.addContent(s2);
 					break;
 
 				case "594$a":
-					sf594a = sf.getText();
+					sf594a = sf2.getText();
+					if(sf594a == null)
+						err("594$a nullo");
+					else
+						err("-->" + sf594a);
+					if(sf240m == null) err("240$m nullo");
 					organico(sf);
-					if(sf240m.equals(sf594a))
-					{
 
+/*
+ * Se 240$m e 594$a sono diversi, il primo si deve ricavare dal secondo (o era
+ * in caso contrario?)
+ */
+
+					if(!sf240m.equals(sf594a))
+					{
+// organico(sf);
 					}
+					err(sf.getText());
 					break;
 
 				default:
@@ -471,4 +542,5 @@ public class Filtro
 		XMLOutputter xo = new XMLOutputter();
 		xo.output(jdomDocument, new PrintWriter("opac2.out.xml"));
 	}
+
 }
