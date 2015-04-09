@@ -1,6 +1,5 @@
 import java.text.DecimalFormat;
 import java.util.Iterator;
-
 import org.jdom2.Element;
 
 public class Filtro
@@ -224,7 +223,15 @@ public class Filtro
 						err("-->" + sf594a);
 					if(sf240m == null) err("240$m nullo");
 					oa = new Organico();
-					oa.organico(sf);
+					try
+					{
+						oa.organico(sf);
+					}
+					catch(StringIndexOutOfBoundsException e)
+					{
+						err("***" + e.getMessage() + "***");
+						Log.info(e.getMessage());
+					}
 					sf594a = sf.getText();
 
 /*
@@ -249,19 +256,19 @@ public class Filtro
 						err("organico sintetico uguale ad analitico");
 						int nVoci = os.getnVoci();
 						int nStru = os.getnStru();
-						err(os.getnVoci() + "V," + os.getnStru() + "stru");
+						err(os.getnVoci() + "V," + os.getnStru() + "str");
 						String osString = "";
 						if(nVoci > 0)
 						{
 							osString = nVoci + "V";
 							if(nStru > 0)
 							{
-								osString += "," + nStru + "stru";
+								osString += "," + nStru + "str";
 							}
 						}
 						else if(nStru > 0)
 						{
-							osString = nStru + "stru";
+							osString = nStru + "str";
 						}
 						sf240m.setText(osString);
 					}

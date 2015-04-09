@@ -9,6 +9,7 @@ public class Organico
 	private Hashtable<String, Integer> ch, vh, sh;
 	private Queue<String> cq, vq, sq;
 	private int nStru = 0, nVoci = 0;
+
 	public int getnStru()
 	{
 		return nStru;
@@ -17,11 +18,6 @@ public class Organico
 	public int getnVoci()
 	{
 		return nVoci;
-	}
-
-	private static void err(String msg)
-	{
-		System.err.println(msg);
 	}
 
 	public void organico(Element s)
@@ -44,11 +40,11 @@ public class Organico
 		boolean coro = false;
 		boolean voce = false;
 
-		err("");
+		Log.debug("");
 		for(String e : eList)
 		{
 			e = e.trim();
-			err(e);
+			Log.debug(e);
 			if(e.startsWith("Coro "))
 			{
 				coro = true;
@@ -62,7 +58,16 @@ public class Organico
 			{
 				int lp = e.indexOf("(");
 				int rp = e.indexOf(")");
+				try
+				{
 				count = e.substring(lp + 1, rp);
+				}
+				catch(StringIndexOutOfBoundsException ee)
+				{
+					String msg = "parentesi chiusa non trovata in <" + e +">, indice " + rp; 
+					StringIndexOutOfBoundsException e2 = new StringIndexOutOfBoundsException(msg);
+					throw e2;
+				}
 				item = e.substring(0, lp).trim();
 				try
 				{
@@ -84,14 +89,14 @@ public class Organico
 				}
 				catch(NumberFormatException ee)
 				{
-					err("Quantificazione non valida: " + e);
+					Log.error("Quantificazione non valida: " + e);
 				}
 				e = count + item;
 				lastStru = item;
 			}
 			else if(e.matches(".* [0-9].*"))
 			{
-// err(".* [0-9]+ => " + e);
+				Log.debug(".* [0-9]+ => " + e);
 				String[] temp2 = e.split(" ");
 				item = temp2[0];
 				count = temp2[1];
@@ -122,7 +127,7 @@ public class Organico
 			}
 			else if(e.matches("[0-9]+"))
 			{
-// err("[0-9]+ => " + e);
+				Log.debug("[0-9]+ => " + e);
 				if(lastStru != null && sh.containsKey(lastStru))
 				{
 					int cc = sh.get(lastStru).intValue();
@@ -144,7 +149,7 @@ public class Organico
 				}
 				else
 				{
-					err("Non so che fare con questo token: [" + e + "]");
+					Log.error("Non so che fare con questo token: [" + e + "]");
 				}
 			}
 			else
@@ -198,12 +203,12 @@ public class Organico
 		r = "";
 		String key;
 		Integer val;
-		err("\nVoci");
+		Log.info("\nVoci");
 		while(vq.peek() != null)
 		{
 			key = vq.poll();
 			val = vh.get(key);
-			err(key + " => " + vh.get(key));
+			Log.debug(key + " => " + vh.get(key));
 			if(val.intValue() > 1)
 			{
 				r += val + key + ",";
@@ -215,7 +220,7 @@ public class Organico
 			nVoci += val.intValue();
 		}
 
-		err("Coro");
+		Log.info("Coro");
 		if(cq.peek() != null)
 		{
 			r += "Coro(";
@@ -223,7 +228,7 @@ public class Organico
 			{
 				key = cq.poll();
 				val = ch.get(key);
-				err(key + " => " + ch.get(key));
+				Log.debug(key + " => " + ch.get(key));
 				if(val.intValue() > 1)
 				{
 					r += val + key + ",";
@@ -236,12 +241,12 @@ public class Organico
 			r = r.substring(0, r.length() - 1) + "),";
 		}
 
-		err("Strumenti");
+		Log.info("Strumenti");
 		while(sq.peek() != null)
 		{
 			key = sq.poll();
 			val = sh.get(key);
-			err(key + " => " + sh.get(key));
+			Log.debug(key + " => " + sh.get(key));
 			if(val.intValue() > 1)
 			{
 				r += val + key + ",";
@@ -253,17 +258,11 @@ public class Organico
 			nStru += val.intValue();
 		}
 
-		err(r);
+		Log.debug(r);
 		if(r.length() > 0)
 		{
 			s.setText(r.substring(0, r.length() - 1));
-			err(s.getText());
-		}
-		if(nVoci * nStru > 0)
-		{
-		}
-		else if(nVoci > 0)
-		{
+			Log.debug(s.getText());
 		}
 	}
 }
