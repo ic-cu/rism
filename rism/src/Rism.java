@@ -19,6 +19,7 @@ import org.jdom2.JDOMException;
 import org.jdom2.Namespace;
 import org.jdom2.filter.Filters;
 import org.jdom2.input.SAXBuilder;
+import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 import org.jdom2.xpath.XPathExpression;
 import org.jdom2.xpath.XPathFactory;
@@ -94,7 +95,7 @@ public class Rism
 		}
 		new Log();
 		Log.init();
-		Log.info(xmlSource);
+		Log.info("Elaborazione file_:" + xmlSource);
 		// read the XML into a JDOM2 document.
 		SAXBuilder jdomBuilder = new SAXBuilder();
 		Document jdomDocument = jdomBuilder.build(new FileReader(xmlSource));
@@ -108,16 +109,15 @@ public class Rism
 		{
 			Element zsRecordData = zsRecord.getChild("recordData", zs);
 			Element record = zsRecordData.getChild("record", null);
+			String cf001 = record.getChild("controlfield", null).getText();
+			Log.info("Elaborazione record " + cf001);
 			Filtro f = new Filtro();
-			f.leader(record);
+//			f.leader(record);
 			f.controlFields(record);
 			f.dataFields(record);
 		}
-// System.out.println(def.getPrefix());
 		ArrayList<Namespace> nss = new ArrayList<Namespace>();
 		nss.add(zs);
-// nss.add(null);
-// nss.add(boh);
 		XPathExpression<Element> expr = xFactory.compile("//record", Filters.element(), null, nss);
 		List<Element> links = expr.evaluate(jdomDocument);
 		int count = 0;
@@ -127,7 +127,7 @@ public class Rism
 			linkElement.setText("Questo era un link: " + linkElement.getValue());
 		}
 
-		XMLOutputter xo = new XMLOutputter();
+		XMLOutputter xo = new XMLOutputter(Format.getPrettyFormat());
 		String xmlTarget = xmlSource.substring(0, xmlSource.indexOf(".xml"));
 		xmlTarget += ".out.xml";
 		xo.output(jdomDocument, new PrintWriter(xmlTarget));

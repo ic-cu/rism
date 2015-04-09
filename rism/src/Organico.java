@@ -40,7 +40,7 @@ public class Organico
 		boolean coro = false;
 		boolean voce = false;
 
-		Log.debug("");
+		Log.info("Inizio elaborazione organico");
 		for(String e : eList)
 		{
 			e = e.trim();
@@ -60,11 +60,11 @@ public class Organico
 				int rp = e.indexOf(")");
 				try
 				{
-				count = e.substring(lp + 1, rp);
+					count = e.substring(lp + 1, rp);
 				}
 				catch(StringIndexOutOfBoundsException ee)
 				{
-					String msg = "parentesi chiusa non trovata in <" + e +">, indice " + rp; 
+					String msg = "parentesi chiusa non trovata in <" + e + ">, indice " + rp;
 					StringIndexOutOfBoundsException e2 = new StringIndexOutOfBoundsException(msg);
 					throw e2;
 				}
@@ -203,7 +203,7 @@ public class Organico
 		r = "";
 		String key;
 		Integer val;
-		Log.info("\nVoci");
+		Log.debug("\nVoci");
 		while(vq.peek() != null)
 		{
 			key = vq.poll();
@@ -220,7 +220,7 @@ public class Organico
 			nVoci += val.intValue();
 		}
 
-		Log.info("Coro");
+		Log.debug("Coro");
 		if(cq.peek() != null)
 		{
 			r += "Coro(";
@@ -241,7 +241,7 @@ public class Organico
 			r = r.substring(0, r.length() - 1) + "),";
 		}
 
-		Log.info("Strumenti");
+		Log.debug("Strumenti");
 		while(sq.peek() != null)
 		{
 			key = sq.poll();
@@ -264,5 +264,6 @@ public class Organico
 			s.setText(r.substring(0, r.length() - 1));
 			Log.debug(s.getText());
 		}
+		Log.info("Fine elaborazione organico");
 	}
 }

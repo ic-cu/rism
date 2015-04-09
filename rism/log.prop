@@ -1,4 +1,6 @@
 log.file = rism.log
-log.pattern = %d{HH:mm:ss} %p %C{1}.%M - %m%n
-log.level = warn
+#log.pattern = %d{HH:mm:ss} %p %C{1}.%M - %m%n
+log.pattern = %d{HH:mm:ss} %p - %m%n
+#log.level = debug
+log.level = info
 dateStamp.pattern = yyyy-MM-dd'T'HH:mm:ss
