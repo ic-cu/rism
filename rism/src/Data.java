@@ -1,4 +1,3 @@
-
 /*
  * Classe per la conversione delle date RISM in formato SBNMARC
  */
@@ -16,7 +15,7 @@ public class Data
 
 	public String getY()
 	{
-		return yDate;
+		return "[" + yDate + "]";
 	}
 
 	/*
@@ -30,8 +29,8 @@ public class Data
 
 /*
  * Consideriamo solo campi contenenti parentesi. In caso contrario tutto resta
- * com'è. Ovviamente la prima cosa da fare è trovare la posizione delle
- * parentesi aperta e chiusa.
+ * com'è, salvo il caso di intervalli. Ovviamente la prima cosa da fare è
+ * trovare la posizione delle parentesi aperta e chiusa.
  */
 
 		if(r.contains("("))
@@ -83,11 +82,11 @@ public class Data
 						break;
 					case "1d":
 						xDate = nn + sx + "p";
-						yDate = "prima metà " + nn + sy + " sec.";
+						yDate = "1. metà " + nn + sy + " sec.";
 						break;
 					case "2d":
 						xDate = nn + sx + "s";
-						yDate = "seconda metà " + nn + sy + " sec.";
+						yDate = "2. metà " + nn + sy + " sec.";
 						break;
 					case "me":
 						xDate = nn + sx + "m";
@@ -99,15 +98,15 @@ public class Data
 						break;
 					case "1q":
 						xDate = nn + sx + "i";
-						yDate = "primo quarto " + nn + sy + " sec.";
+						yDate = "1. quarto " + nn + sy + " sec.";
 						break;
 					case "2q":
 						xDate = nn + sx + "p";
-						yDate = "secondo quarto " + nn + sy + " sec.";
+						yDate = "2. quarto " + nn + sy + " sec.";
 						break;
 					case "3q":
 						xDate = nn + sx + "s";
-						yDate = "terzo quarto " + nn + sy + " sec.";
+						yDate = "3. quarto " + nn + sy + " sec.";
 						break;
 					case "4q":
 						xDate = nn + sx + "f";
@@ -143,11 +142,11 @@ public class Data
 				xDate = nn + "-" + mm;
 				yDate = "circa " + nn + "-" + mm;
 			}
-			
+
 /*
- * In teoria qui restano solo i casi (NNNNx), con vari valori di x 			
+ * In teoria qui restano solo i casi (NNNNx), con vari valori di x
  */
-			
+
 			else
 			{
 				nn = Integer.parseInt(bDate.substring(0, bDate.length() - 1));
@@ -181,12 +180,14 @@ public class Data
 		{
 			aDate = r.substring(0, r.indexOf("-"));
 			bDate = r.substring(r.indexOf("-") + 1);
+			Log.debug("Data sorgente: " + r + ", aDate = " + aDate + ", bDate = " + bDate);
 
 /*
  * Per sicurezza controlliamo che le due parti divise dal trattino inizino con
  * la stessa coppia di cifre, perché in output si estrae un solo valore numerico
  */
 
+			Log.debug("Prime due cifre: " + aDate.substring(0, 2));
 			if(aDate.substring(0, 2).equals(bDate.substring(0, 2)))
 			{
 				nn = Integer.parseInt(aDate.substring(0, 2));
@@ -196,7 +197,7 @@ public class Data
 /*
  * Tutti i tre casi da gestire prevedono l'incremento della parte NN
  */
-				
+
 				nn++;
 				if(ii == 0 && jj == 49)
 				{
@@ -214,14 +215,17 @@ public class Data
 					yDate = "seconda metà " + nn + sy + " sec.";
 				}
 			}
-			xDate = r;
-			yDate = r;
 		}
 
 /*
  * Non c'è parentesi, né trattino: $x e $y dovranno essere uguali alla stringa
  * in input
  */
+		else
+		{
+			xDate = r;
+			yDate = r;
+		}
 
 	}
 }

@@ -7,6 +7,7 @@ public class Filtro
 	private static Element sf240m = null;
 	private static String sf594a = null;
 	private Organico oa, os;
+	private String badOSf = "z";
 
 	private static void nonSort(Element s)
 	{
@@ -142,9 +143,20 @@ public class Filtro
 					{
 						oa.organico(sf);
 					}
+
+/*
+ * Il caso di indice fuori scala è quasi certamente segno dell'impossibilità di
+ * elaborare un organico secondo le regole fin qui implementate. Si crea allora
+ * un 596$z fittizio per evidenziare questo problema. Per sicurezza, si usa un
+ * stringa configurabile, piuttosto che la "z" già codificata nel codice
+ */
+
 					catch(StringIndexOutOfBoundsException e)
 					{
 						Log.error(e.getMessage());
+						Element s3 = new Element("subfield", df.getNamespace()).setAttribute("code", badOSf);
+						s3.setText("1");
+						df.addContent(s3);
 					}
 					sf594a = sf.getText();
 
