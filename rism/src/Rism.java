@@ -94,7 +94,7 @@ public class Rism
 			xmlSource = args[0];
 		}
 		new Log();
-		Log.init();
+		Log.init(xmlSource + ".log");
 		Log.info("Elaborazione file_:" + xmlSource);
 		// read the XML into a JDOM2 document.
 		SAXBuilder jdomBuilder = new SAXBuilder();

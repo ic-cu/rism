@@ -23,7 +23,7 @@ public final class Log
 	public static Logger log;
 	private static Properties config;
 
-	public static void init() throws FileNotFoundException
+	public static void init(String logFile) throws FileNotFoundException
 	{
 		config = new Properties();
 		try
@@ -70,7 +70,8 @@ public final class Log
 		}
 		log.setLevel(level);
 		pl = new PatternLayout(config.getProperty("log.pattern"));
-		lf = new File(config.getProperty("log.file"));
+//		lf = new File(config.getProperty("log.file"));
+		lf = new File(logFile);
 		pw = new PrintWriter(lf);
 		wa = new WriterAppender(pl, pw);
 		log.addAppender(wa);
