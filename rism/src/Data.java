@@ -202,7 +202,7 @@ public class Data
 				if(ii == 0 && jj == 49)
 				{
 					xDate = nn + sx + "p";
-					yDate = "prima metà " + nn + sy + " sec.";
+					yDate = "1. metà " + nn + sy + " sec.";
 				}
 				if(ii == 0 && jj == 99)
 				{
@@ -212,7 +212,7 @@ public class Data
 				if(ii == 50 && jj == 99)
 				{
 					xDate = nn + sx + "s";
-					yDate = "seconda metà " + nn + sy + " sec.";
+					yDate = "2. " + nn + sy + " sec.";
 				}
 			}
 		}
