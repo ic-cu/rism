@@ -1,5 +1,8 @@
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+
 import org.jdom2.Element;
 
 public class Filtro
@@ -66,35 +69,39 @@ public class Filtro
  * Serve un clone del df su cui iterare e il cui sotto albero non sarà
  * modificato, anche se i singoli valori di elementi e attributi potrebbero
  * essere modificati senza problemi. Il problema nasce se si aggiunge o toglie
- * un elemento, perché questo altera la lista di figli su cui si sta iterando
+ * un elemento, perché questo altera la lista di figli su cui si sta iterando.
+ * Per questo motivo non si può usare un iteratore, ma una lista vera e propria,
+ * che si può scorrere ma anche incrementare senza problemi. L'iteratore provoca
+ * invece un'eccezione se la lista sottostante viene modificata, almeno in certi
+ * casi
  */
-		Element df2 = df.clone();
+		Element dfClone = df.clone();
 		Element sf;
-		Iterator<Element> dfcIter = df.getChildren().iterator();
-		for(Element sf2 : df2.getChildren())
+		List<Element> sfList = df.getChildren();
+		int i = 0;
+		for(Element sfClone : dfClone.getChildren())
 		{
-			sf = dfcIter.next();
-			Log.debug(sf2.getText());
-			code = tag + "$" + sf2.getAttributeValue("code");
+			sf = sfList.get(i++);
+			code = tag + "$" + sfClone.getAttributeValue("code");
 			Log.info("Subfield " + code);
+			Log.debug(sfClone.getText());
 			switch(code)
 			{
 				case "100$a":
-					if(!sf2.getText().contains(","))
+					if(!sfClone.getText().contains(","))
 					{
 						df.setAttribute("ind1", "0");
 					}
 					break;
 
 				case "700$a":
-					if(!sf2.getText().contains(","))
+					if(!sfClone.getText().contains(","))
 					{
 						df.setAttribute("ind1", "0");
 					}
-					break;
 
 				case "031$r":
-					sf.setText(sf2.getText().replace("|", ""));
+					sf.setText(sfClone.getText().replace("|", ""));
 					break;
 
 				case "240$a":
@@ -113,7 +120,7 @@ public class Filtro
 					break;
 
 				case "240$r":
-					sf.setText(sf2.getText().replace("|", ""));
+					sf.setText(sfClone.getText().replace("|", ""));
 					break;
 
 /*
@@ -123,7 +130,7 @@ public class Filtro
  */
 				case "260$c":
 					Element s2 = new Element("subfield", df.getNamespace()).setAttribute("code", "x");
-					Data d = new Data(sf2.getText());
+					Data d = new Data(sfClone.getText());
 					s2.addContent(d.getX());
 					df.addContent(s2);
 					s2 = new Element("subfield", df.getNamespace()).setAttribute("code", "y");
@@ -131,8 +138,30 @@ public class Filtro
 					df.addContent(s2);
 					break;
 
+/*
+ * Partiture. Si lascia inalterato il sottocampo, ma se ne aggiungono due
+ * fittizi per facilitare l'ulteriore elaborazione con usemarcon
+ */
+
+				case "300$a":
+					Element s4 = new Element("subfield", df.getNamespace()).setAttribute("code", "x");
+					Partitura p = new Partitura(sfClone.getText());
+					Log.debug("x = " + p.getX() + ", y = " + p.getY());
+					if(p.getX() != "")
+					{
+						s4.addContent(p.getX());
+						df.addContent(s4);
+					}
+					if(p.getY() != "")
+					{
+						s4 = new Element("subfield", df.getNamespace()).setAttribute("code", "y");
+						s4.addContent(p.getY());
+						df.addContent(s4);
+					}
+					break;
+
 				case "594$a":
-					sf594a = sf2.getText();
+					sf594a = sfClone.getText();
 					if(sf594a == null)
 						Log.warn("594$a nullo");
 					else
