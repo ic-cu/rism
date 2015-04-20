@@ -104,9 +104,13 @@ public class Filtro
 					sf.setText(sfClone.getText().replace("|", ""));
 					break;
 
-				case "240$a":
-					nonSort(sf);
-					break;
+/*
+ * Sembra che sia più facile gestire i non sort a livello MARC, per cui per
+ * adesso non sono trattati qui, poi si vedrà
+ */
+// case "240$a":
+// nonSort(sf);
+// break;
 
 /*
  * L'organico sintetico, che viene sempre per primo (si spera), si mette via per
