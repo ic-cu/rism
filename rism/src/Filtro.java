@@ -1,6 +1,4 @@
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.jdom2.Element;
@@ -12,16 +10,16 @@ public class Filtro
 	private Organico oa, os;
 	private String badOSf = "z";
 
-	private static void nonSort(Element s)
-	{
-		String r = s.getText();
-		if(r.startsWith("La "))
-		{
-			r = r.replaceFirst("La", 0xc288 + "La" + 0xc289);
-			System.err.println(r);
-			s.setText(r);
-		}
-	}
+//	private static void nonSort(Element s)
+//	{
+//		String r = s.getText();
+//		if(r.startsWith("La "))
+//		{
+//			r = r.replaceFirst("La", 0xc288 + "La" + 0xc289);
+//			System.err.println(r);
+//			s.setText(r);
+//		}
+//	}
 
 	public String leader(Element r)
 	{
