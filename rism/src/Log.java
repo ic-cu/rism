@@ -1,5 +1,4 @@
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -23,21 +22,10 @@ public final class Log
 	public static Logger log;
 	private static Properties config;
 
-	public static void init(String logFile) throws FileNotFoundException
+	public static void init(String logFile) throws IOException
 	{
 		config = new Properties();
-		try
-		{
-			config.load(new FileReader("log.prop"));
-		}
-		catch(FileNotFoundException e)
-		{
-			log.warn("File non trovato: " + e.getMessage());
-		}
-		catch(IOException e)
-		{
-			log.error("Impossibile leggere il file di configurazione: " + e.getMessage());
-		}
+		config.load(new FileReader("log.prop"));
 		PatternLayout pl;
 		File lf;
 		PrintWriter pw;
@@ -70,7 +58,7 @@ public final class Log
 		}
 		log.setLevel(level);
 		pl = new PatternLayout(config.getProperty("log.pattern"));
-//		lf = new File(config.getProperty("log.file"));
+// lf = new File(config.getProperty("log.file"));
 		lf = new File(logFile);
 		pw = new PrintWriter(lf);
 		wa = new WriterAppender(pl, pw);
